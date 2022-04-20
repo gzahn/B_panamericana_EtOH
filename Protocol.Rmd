@@ -1,0 +1,102 @@
+---
+title: "Privileged and Confidential: *Baudoinia* germination protocol"
+author: "Geoff Zahn"
+date: "4/15/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+___
+
+# **Strain info:**
+*Baudoinia panamericana*
+
+Strain: UAMH10762
+
+<br><br>
+
+    UAMH Centre for Global Microfungal Biodiversity
+    223 College Street
+    Toronto, ON M5T 1R4
+    PH: 416-946-8778
+    FAX: 416-978-2608
+    https://www.uamh.ca/
+    
+    Yordanka Guardiola, Curator
+    curator@uamh.ca
+    
+___
+
+
+# **Protocol:**
+
+**Replication of Ewaze, *et al.*, 2008 "Effect of ethanol vapour on dormant cell germination"**
+
+Ewaze, J. O., Summerbell, R. C., & Scott, J. A. (2008). Ethanol physiology in the warehouse-staining fungus, Baudoinia compniacensis. Mycological Research, 112(11), 1373–1380. https://doi.org/10.1016/j.mycres.2008.05.003
+
+**Design**
+
+6 Treatments (Sterile control, Acetone 10ppm control, Ethanol 0.1ppm, Ethanol 1ppm, Ethanol 10ppm, Ethanol 100ppm)
+
+5 replicate subjects per treatment
+
+Grow dormant colonies on sterile filters for 14 days in vapor treatment chambers
+
+Count resultant colonies on filters
+
+Analyze with One-way ANOVA and GLM (Colony count ~ treatment)
+
+
+**Workflow:**
+
+  1. Order *B. panamericana* strain UAMH10762
+  2. Prepare solid growth media - ML Agar (see notes)
+  3. Culture UAMH10762 for bulk growth on ML Agar
+  4. Calculate and prepare chamber treatments
+  5. Apply 300 colony-forming units of fungi to each of 30 sterile cellulose filters
+  6. Allow 14 days of growth in treatment chambers at 26 deg C
+  7. Remove filters and visualize under light microscopy
+  8. Analyze data (ANOVA + Tukey Test; Generalized linear regression)
+  9. Prepare report  
+  
+___
+
+# **Budget ($4,751 - $4,791 total):**
+
+**Fungal culture ($495 - $535)**
+
+  - Live culture:           $325
+  - Container:              $25
+  - Shipping:               $85 - $125
+  - Foreign export fee:     $15
+  - Bank transfer fee:      $45
+
+**Cellulose membrane filters ($56)**
+
+  - Fisher Scientific MEMBR FLTR 0.45UM 25MM 100/PK 
+
+**Experimental protocol ($4200)**
+
+  - Experiment preparation (incl. media prep and culturing):          4 hours
+  - Experiment setup:                                                 3 hours
+  - Data collection (colony counting):                                4 hours
+  - Data analysis and reporting:                                      3 hours
+  
+Consulting rate of $300 / hr
+
+___
+
+# **Notes:**
+
+**ML Agar recipe**
+
+6.25 g maltose, 6.25 g malt extract 0.63 g, MgSO4·7H2O, 1.25 g KH2PO4, 0.63 g Bacto peptone, 1 g yeast extract, and 15 g agar in 1000 mL DI Water
+
+**Ethanol volumes from Ewaze, *et al.*, 2008**
+
+Using the Henry's law constant for ethanol in aqueous solution (5 x 10-6 atm m3 mole-1 at 25 deg C) (Gaffney et al. 1987), ethanol concentrations were calculated to obtain ethanol vapour levels in the head space ranging from 0.1-100 ppm; the actual volumes of 95% ethanol added to the water were 1.23, 12.3, 123 and 1230 uL. 
+
+Will need to recalculate for Orem, UT elevation and for Acetone treatment
