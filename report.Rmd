@@ -1,7 +1,7 @@
 ---
-title: "Ethanol Growth Report"
+title: "PRIVILEGED AND CONFIDENTIAL: Ethanol Growth Report"
 author: "Geoffrey Zahn"
-date: "4/20/2022"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -16,7 +16,7 @@ library(broom)
 '%ni%' <- Negate('%in%')
 theme_set(theme_minimal())
 
-df <- read_csv("./data/results.csv")
+df <- read_csv("./data/colony_counts.csv")
 ```
 
 
@@ -43,30 +43,31 @@ ___
 ```{r}
 # find control group measures
 H2O_control <- df %>% 
-  filter(Treatment == "H2O") %>% 
-  summarize(H2O_mean=mean(CFUs),
-            H2O_sd=sd(CFUs),
+  filter(ppm == 0) %>% 
+  summarize(H2O_mean=mean(colony_count),
+            H2O_sd=sd(colony_count),
             H2O_upper=H2O_mean + H2O_sd,
             H2O_lower=H2O_mean - H2O_sd)
-Acetone_control <- df %>% 
-  filter(Treatment == "Acetone") %>% 
-  summarize(Acetone_mean=mean(CFUs),
-            Acetone_sd=sd(CFUs),
-            Acetone_upper=Acetone_mean + Acetone_sd,
-            Acetone_lower=Acetone_mean - Acetone_sd)
-controls <- cbind(H2O_control,Acetone_control)
+# Acetone_control <- df %>% 
+#   filter(Treatment == "Acetone") %>% 
+#   summarize(Acetone_mean=mean(CFUs),
+#             Acetone_sd=sd(CFUs),
+#             Acetone_upper=Acetone_mean + Acetone_sd,
+#             Acetone_lower=Acetone_mean - Acetone_sd)
+controls <- H2O_control
 ```
 
 
 ```{r}
 # build plots
 etoh <- df %>% 
-  filter(Treatment == "EtOH") %>% 
-  mutate(Concentration_ppm = factor(Concentration_ppm,levels = c("0.1","1","10","100")))
+  filter(ppm != 0) %>% 
+  # filter(colony_count < 200) %>% 
+  mutate(Concentration_ppm = factor(ppm,levels = c("0.1","1","10","100")))
 
 h2o_plot <- 
-etoh %>% 
-  ggplot(aes(x=Concentration_ppm,y=100*(CFUs/H2O_control$H2O_mean),fill=Concentration_ppm)) +
+etoh %>%
+  ggplot(aes(x=Concentration_ppm,y=100*(colony_count/H2O_control$H2O_mean),fill=Concentration_ppm)) +
   geom_boxplot() +
   labs(x="Ethanol conc. (ppm)",
        title="Post-exposure germination\nvs water control (%)",
@@ -74,23 +75,8 @@ etoh %>%
   geom_hline(yintercept=100*H2O_control$H2O_mean/H2O_control$H2O_mean) +
   geom_hline(yintercept=100*H2O_control$H2O_upper/H2O_control$H2O_mean, linetype=2) +
   geom_hline(yintercept=100*H2O_control$H2O_lower/H2O_control$H2O_mean, linetype=2) +
-  coord_cartesian(ylim=c(0,max(100*(etoh$CFUs/H2O_control$H2O_mean)))) +
+  coord_cartesian(ylim=c(0,1000)) +
   # annotate("text",x=2.5,y=107,label="Water control values") +
-  theme(axis.text = element_text(face='bold',size=12),
-        legend.position = 'none')
-
-acetone_plot <- 
-etoh %>% 
-  ggplot(aes(x=Concentration_ppm,y=100*(CFUs/Acetone_control$Acetone_mean),fill=Concentration_ppm)) +
-  geom_boxplot() +
-  labs(x="Ethanol conc. (ppm)",
-       title="Post-exposure germination\nvs acetone control (%)",
-       y=NULL) +
-  geom_hline(yintercept=100*Acetone_control$Acetone_mean/Acetone_control$Acetone_mean) +
-  geom_hline(yintercept=100*Acetone_control$Acetone_upper/Acetone_control$Acetone_mean, linetype=2) +
-  geom_hline(yintercept=100*Acetone_control$Acetone_lower/Acetone_control$Acetone_mean, linetype=2) +
-  coord_cartesian(ylim=c(0,max(100*(etoh$CFUs/H2O_control$H2O_mean)))) +
-  # annotate("text",x=2.5,y=107,label="Acetone control values") +
   theme(axis.text = element_text(face='bold',size=12),
         legend.position = 'none')
 
@@ -100,28 +86,24 @@ etoh %>%
 ```{r}
 # run stats
 etoh <- etoh %>% 
-  mutate(relative_growth_h2o = 100 * CFUs / controls$H2O_mean,
-         relative_growth_acetone = 100 * CFUs / controls$Acetone_mean)
+  mutate(relative_growth_h2o = 100 * colony_count / controls$H2O_mean)
 
 
 water_cfus <- df %>% 
-  filter(Treatment == "H2O") %>% 
-  pluck("CFUs")
-acetone_cfus <- df %>% 
-  filter(Treatment == "Acetone") %>% 
-  pluck("CFUs") 
+  filter(ppm == 0) %>% 
+  pluck("colony_count")
 cfus_0.1 <- df %>% 
-  filter(Concentration_ppm == "0.1") %>% 
-  pluck("CFUs")
+  filter(ppm == "0.1") %>% 
+  pluck("colony_count")
 cfus_1 <- df %>% 
-  filter(Concentration_ppm == "1") %>% 
-  pluck("CFUs")
+  filter(ppm == "1") %>% 
+  pluck("colony_count")
 cfus_10 <- df %>% 
-  filter(Concentration_ppm == "10") %>% 
-  pluck("CFUs")
+  filter(ppm == "10") %>% 
+  pluck("colony_count")
 cfus_100 <- df %>% 
-  filter(Concentration_ppm == "100") %>% 
-  pluck("CFUs")
+  filter(ppm == "100") %>% 
+  pluck("colony_count")
 
 # water t.tests
 water_ttests <- list()
@@ -130,17 +112,16 @@ for(i in ls(pattern = "cfus_")){
   water_ttests[[i]] <- t.test(d,water_cfus) %>% tidy()
 }
 
-# acetone_ttests
-acetone_ttests <- list()
-for(i in ls(pattern = "cfus_")){
-  d <- get(i)
-  acetone_ttests[[i]] <- t.test(d,acetone_cfus) %>% tidy()
-}
-
 
 
 ```
 
+**Short summary:**
+
+  - While it appears that ethanol at 1, 10, and 100 ppm increases *B. panamericana* germination, statistical tests are unable to conclude that these differences are significant and real.
+  - With the exception of a single 100 ppm jar which had 262 colonies growing, the remainder of samples had between 0 and 20 colonies.
+  - I have left that high-count jar in all analyses, but I am suspicious of why it did so much better than every other 100 ppm sample. It could be contamination with another carbon source, or just that biology is confusing.
+  
 ___
 
 # **Results:**
@@ -152,29 +133,21 @@ ___
 fillcolors <- data.frame(
 Water_Diff = water_ttests %>% 
   map(5) %>% 
-    map_lgl(function(x){x<0.05}),
-Acetone_Diff = acetone_ttests %>% 
-  map(5) %>% 
-    map_lgl(function(x){x<0.05})
-) %>% 
+    map_lgl(function(x){x<0.05})) %>% 
   mutate(PPM=row.names(.)) %>% 
-  select(PPM,Water_Diff,Acetone_Diff) %>% 
+  select(PPM,Water_Diff) %>% 
   mutate(PPM=PPM %>% str_remove("cfus_")) %>% 
   mutate(watercolor=case_when(Water_Diff == TRUE ~ "DarkGreen",
-                              TRUE ~ "Gray"),
-         acetonecolor=case_when(Acetone_Diff == TRUE ~ "DarkGreen",
-                                TRUE ~ "Gray"))
+                              TRUE ~ "Gray"))
 
 # adapt plots to have meaningful fill colors
 
 h2o_plot <- h2o_plot + 
   scale_fill_manual(values = fillcolors$watercolor)
+h2o_plot
   
+
   
-acetone_plot <- acetone_plot +
-  scale_fill_manual(values = fillcolors$acetonecolor)
-  
-h2o_plot + acetone_plot
 
 
 ```
@@ -187,19 +160,31 @@ Post-exposure germination values shown as percentages of sterile water and aceto
 
 ___
 
+I used several complimentary (redundant) statistical approaches to determine whether apparent differences (from Figure 1) were statistically significant. First, I ran a General Linear Regression on raw colony count data, using Ethanol concentration as a predictor. There was no significant difference between the treatments.
+
+
 <br>
 
+```{r tidy=FALSE, results = 'asis'}
+df %>% 
+  glm(formula = colony_count ~ factor(ppm),
+      data=.) %>% 
+  report() %>% 
+  summary()
+  
+
+```
+
+Next, I ran the alternative approach of conducting individual T-tests between each Ethanol treatment and the sterile water controls. This series of tests agreed with the GLM approach.
+
 ```{r}
+
 data.frame(
 Water_Diff = water_ttests %>% 
   map(5) %>% 
-    map_lgl(function(x){x<0.05}),
-Acetone_Diff = acetone_ttests %>% 
-  map(5) %>% 
-    map_lgl(function(x){x<0.05})
-) %>% 
+    map_lgl(function(x){x<0.05})) %>% 
   mutate(PPM=row.names(.)) %>% 
-  select(PPM,Water_Diff,Acetone_Diff) %>% 
+  select(PPM,Water_Diff) %>% 
   mutate(PPM=PPM %>% str_remove("cfus_")) %>% 
   remove_rownames() %>% 
   kableExtra::kable() %>% 
@@ -210,19 +195,23 @@ Acetone_Diff = acetone_ttests %>%
 Table 1 - Shows whether there was a statistically significant difference between observed growth and controls (both water and acetone) for each concentration of Ethanol. Paired T-tests were conducted between each ethanol concentration and the respective control.
 
 
-```{r}
+<br>
+
+Lastly, I ran another linear regression model, but this time on transformed values instead of raw colony counts. In this case, relative colony counts were used (relative to the sterile water control mean colony count value). This was to better reflect what was visualized in Figure 1. Again, the model agreed that it is unable to determine significant differences between the different Ethanol treatments in their relative increase in germination over sterile water controls.
+
+```{r tidy=FALSE, , results = 'asis'}
 df %>% 
-  mutate(Relative_germination_acetone = CFUs / controls$Acetone_mean,
-         Relative_germination_water = CFUs / controls$H2O_mean) %>% 
+  mutate(Relative_germination_water = colony_count / controls$H2O_mean) %>% 
   # mutate(Concentration_ppm = factor(Concentration_ppm,levels = c("0.1","1","10","100"))) %>% 
   pivot_longer(starts_with("Relative_"),
                names_to = "Control",
                names_prefix = "Relative_germination_",
                values_to = "Relative_germination") %>% 
-  filter(Treatment == "EtOH") %>% 
-  glm(formula = Relative_germination ~ Concentration_ppm + Control,
+  filter(ppm > 0) %>% 
+  glm(formula = Relative_germination ~ ppm,
       data = .) %>% 
-  report()
+  report() %>% 
+  summary()
   
 
 ```
